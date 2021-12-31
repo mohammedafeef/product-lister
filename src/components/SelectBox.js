@@ -9,7 +9,7 @@ const SelectWrapper = styled.span`
     content: "";
     position: absolute;
     pointer-events: none;
-    right: 1.2em;
+    right: 0.8em;
     top: 65%;
     margin-top: -0.5em;
     width: 0;
@@ -29,7 +29,9 @@ const Select = styled.select`
   color: #fff;
   font-size: 1rem;
   font-weight: 400;
+  text-transform:capitalize;
   padding: 0.5rem 0.8rem;
+  padding-right: 2rem;
   border: 0;
   margin: 0;
   border-radius: 4.8px;
@@ -51,7 +53,7 @@ export default function SelectBox(props) {
     <SelectWrapper>
       <Select
         onChange={(e) =>
-          onChangeHandler({ ...values, [title]: e.target.value })
+          onChangeHandler({ ...values, [title]: e.target.value },title)
         }
         value={values[title] || "all"}
       >

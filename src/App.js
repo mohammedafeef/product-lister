@@ -1,5 +1,4 @@
-import "./App.css";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { useState, useEffect } from "react";
 import axios from "axios";
 //custom components
@@ -7,6 +6,7 @@ import ProductList from "./components/ProductList";
 import FilterCard from "./components/FiltersCard";
 
 //styling
+
 //filter section
 const Container = styled.div`
   width: 100vw;
@@ -75,9 +75,9 @@ const TabTitle = styled.h3`
 function App() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [productNames, setProductNames] = useState(["TCS Coperation", "wipro"]);
-  const [states, setStates] = useState(["kerala", "delhi"]);
-  const [cities, setCities] = useState(["mumbai", "delhi", "kolkata"]);
+  const [productNames, setProductNames] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
   const [filter, setFilter] = useState({
     state: "all",
     city: "all",
@@ -102,7 +102,6 @@ function App() {
     const mappedArr = arr.map((ele) => getKeyValue(ele, key));
     return mappedArr.filter((ele, index) => mappedArr.indexOf(ele) === index);
   };
-
   //To extract the details from products fethched from the api endpoint
   const extractDetails = (products) => {
     setProducts(products);
@@ -122,11 +121,23 @@ function App() {
       return obj.filter((ele) => ele.address.state === state);
     } else if (city !== "all") {
       return obj.filter((ele) => ele.address.city === city);
+    } else {
+      return obj;
+    }
+  };
+
+  //To update states and cities
+  const updateStatesCities = (products, key) => {
+    if (key === "products") {
+      setStates(filterArr(products, "address.state"));
+      setCities(filterArr(products, "address.city"));
+    } else if (key === "state") {
+      setCities(filterArr(products, "address.city"));
     }
   };
 
   //handle filtering by state,city and product name
-  const handleFilter = (condition) => {
+  const handleFilter = (condition, key) => {
     setFilter(condition);
     const { state, city, product } = condition;
 
@@ -136,14 +147,18 @@ function App() {
 
     let updatedProducts = {};
     if (product !== "all") {
-      updatedProducts = filterByStateCity(
-        state,
-        city,
+      console.log(
+        products,
         products.filter((ele) => ele.product_name === product)
       );
+      updatedProducts = products.filter((ele) => ele.product_name === product);
+      console.log("called successfully", updatedProducts);
+      updatedProducts = filterByStateCity(state, city, updatedProducts);
+      console.log("called successfully", updatedProducts);
     } else {
       updatedProducts = filterByStateCity(state, city, products);
     }
+    updateStatesCities(updatedProducts, key);
     setFilteredProducts(categoraizeProducts(updatedProducts));
   };
 

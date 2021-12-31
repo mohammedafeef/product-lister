@@ -4,7 +4,7 @@ import ProductCard from "./ProductCard";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const Container = styled.div`
-  margin-top: 1rem;
+  margin-top: 2rem;
   display: flex;
   align-items: center;
 `;
@@ -13,6 +13,7 @@ const ListWrapper = styled.div`
   flex-direction: column;
   overflow: hidden;
   margin-right: 0.5rem;
+  width: 100%;
 `;
 const ListTitle = styled.h3`
   font-size: 1.5rem;
@@ -45,6 +46,9 @@ const RightArrow = styled(ArrowForwardIosIcon)`
   font-size: 2.3rem;
   margin-left: 0.8rem;
   cursor: pointer;
+  @media screen and (max-width: 480px) {
+    margin: 0;
+  }
 `;
 export default function ProductList(props) {
   const { title, products } = props;

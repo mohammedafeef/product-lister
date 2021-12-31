@@ -77,7 +77,7 @@ export default function ProductCard(props) {
   const { details } = props;
   //To format the date obj
   const getFormatedDate = (date) =>
-    `${date.getDate()}:${date.getMonth() + 1}:${date.getFullYear()}`;
+    `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   return (
     <ProductWrapper>
       <ImageSection>
