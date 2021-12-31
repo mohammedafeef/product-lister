@@ -10,7 +10,7 @@ const FilterSection = styled.div`
   flex-direction: column;
   @media screen and (max-width: 768px) {
     flex-direction: row;
-    flex-wrap:wrap;
+    flex-wrap: wrap;
     justify-content: space-between;
   }
 `;
@@ -31,7 +31,7 @@ const Line = styled.hr`
 `;
 
 export default function filterCard(props) {
-  const { product, state, city } = props;
+  const { product, state, city, onChangeHandler, filter } = props;
   return (
     <>
       <TitleSection>
@@ -39,9 +39,24 @@ export default function filterCard(props) {
         <Line />
       </TitleSection>
       <FilterSection>
-        <SelectBox title={"Product"} options={product} />
-        <SelectBox title={"State"} options={state} />
-        <SelectBox title={"City"} options={city} />
+        <SelectBox
+          title={"product"}
+          options={product}
+          onChangeHandler={onChangeHandler}
+          values={filter}
+        />
+        <SelectBox
+          title={"state"}
+          options={state}
+          onChangeHandler={onChangeHandler}
+          values={filter} 
+        />
+        <SelectBox
+          title={"city"}
+          options={city}
+          onChangeHandler={onChangeHandler}
+          values={filter}
+        />
       </FilterSection>
     </>
   );

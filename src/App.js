@@ -1,6 +1,7 @@
 import "./App.css";
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 //custom components
 import ProductList from "./components/ProductList";
 import FilterCard from "./components/FiltersCard";
@@ -16,7 +17,7 @@ const Container = styled.div`
   padding: 2rem 1.5rem;
   padding-bottom: 0;
   @media screen and (max-width: 768px) {
-    padding:1rem;
+    padding: 1rem;
   }
 `;
 const FilterWrapper = styled.div`
@@ -56,7 +57,7 @@ const ContentWrapper = styled.div`
     display: none;
   }
   @media screen and (max-width: 768px) {
-    margin:0;
+    margin: 0;
   }
 `;
 const BrandName = styled.h1`
@@ -72,95 +73,122 @@ const TabTitle = styled.h3`
 `;
 
 function App() {
-  const [product, setProduct] = useState(["TCS Coperation", "wipro"]);
-  const [state, setState] = useState(["kerala", "delhi"]);
-  const [city, setCity] = useState(["mumbai", "delhi", "kolkata"]);
-  const products = [
-    {
-      product_name: "Rebook shoes inc",
-      brand_name: "Rebook",
-      price: 1100,
-      address: {
-        state: "Puducherry",
-        city: "Mahe",
-      },
-      discription: "Its a good product",
-      date: "2020-06-28T03:07:47.491Z",
-      time: "2014-06-02T13:20:30.451Z",
-      image:
-        "https://www.pngall.com/wp-content/uploads/2016/05/Phone-Download-PNG.png",
-    },
-    {
-      product_name: "Saudi Aramco",
-      brand_name: "Saudi",
-      price: 100,
-      address: {
-        state: "Gujarat",
-        city: "Nadiad",
-      },
-      discription: "Its a good product",
-      date: "2020-03-17T15:27:25.112Z",
-      time: "2017-01-21T01:13:39.277Z",
-      image:
-        "https://www.researchgate.net/profile/Serge-Belongie/publication/221362362/figure/fig2/AS:305566657335318@1449864176496/Sample-of-in-vitro-images-for-different-products.png",
-    },
-    {
-      product_name: "Rebook shoes inc",
-      brand_name: "Rebook",
-      price: 1100,
-      address: {
-        state: "Puducherry",
-        city: "Pondicherry",
-      },
-      discription: "Its a good product",
-      date: "2012-04-20T07:24:56.211Z",
-      time: "2021-02-18T10:03:40.612Z",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png",
-    },
-    {
-      product_name: "Saudi Aramco",
-      brand_name: "Saudi",
-      price: 100,
-      address: {
-        state: "Himachal Pradesh",
-        city: "Solan",
-      },
-      discription: "Its a good product",
-      date: "2014-09-06T17:31:42.059Z",
-      time: "2015-05-06T08:07:38.761Z",
-      image:
-        "https://png.pngtree.com/png-clipart/20190920/original/pngtree-chemical-glass-product-illustration-png-image_4626884.jpg",
-    },
-    {
-      product_name: "Saudi Aramco",
-      brand_name: "Saudi",
-      price: 100,
-      address: {
-        state: "Himachal Pradesh",
-        city: "Nahan",
-      },
-      discription: "Its a good product",
-      date: "2012-07-25T11:14:59.209Z",
-      time: "2018-10-21T12:29:09.736Z",
-      image:
-        "https://toppng.com/uploads/preview/sitemap-infos-transparent-i-phone-x-phone-in-hand-11563198189tafc9ocrkg.png",
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [productNames, setProductNames] = useState(["TCS Coperation", "wipro"]);
+  const [states, setStates] = useState(["kerala", "delhi"]);
+  const [cities, setCities] = useState(["mumbai", "delhi", "kolkata"]);
+  const [filter, setFilter] = useState({
+    state: "all",
+    city: "all",
+    product: "all",
+  });
+
+  //To categories product based on product name
+  const categoraizeProducts = (products) =>
+    products.reduce((r, a) => {
+      r[a.product_name] = [...(r[a.product_name] || []), a];
+      return r;
+    }, {});
+
+  //To get the value of the corresponding key
+  const getKeyValue = (ele, key) =>
+    key.includes(".")
+      ? key.split(".").reduce((value, ele) => value[ele], ele)
+      : ele[key];
+
+  //To filter array based on any key
+  const filterArr = (arr, key) => {
+    const mappedArr = arr.map((ele) => getKeyValue(ele, key));
+    return mappedArr.filter((ele, index) => mappedArr.indexOf(ele) === index);
+  };
+
+  //To extract the details from products fethched from the api endpoint
+  const extractDetails = (products) => {
+    setProducts(products);
+    setFilteredProducts(categoraizeProducts(products));
+    setProductNames(filterArr(products, "product_name"));
+    setCities(filterArr(products, "address.city"));
+    setStates(filterArr(products, "address.state"));
+  };
+
+  //To filter by state and city
+  const filterByStateCity = (state, city, obj) => {
+    if (state !== "all" && city !== "all") {
+      return obj.filter(
+        (ele) => ele.address.state === state && ele.address.city === city
+      );
+    } else if (state !== "all") {
+      return obj.filter((ele) => ele.address.state === state);
+    } else if (city !== "all") {
+      return obj.filter((ele) => ele.address.city === city);
+    }
+  };
+
+  //handle filtering by state,city and product name
+  const handleFilter = (condition) => {
+    setFilter(condition);
+    const { state, city, product } = condition;
+
+    //check all filters are none
+    if (product === "all" && state === "all" && city === "all")
+      return setFilteredProducts(categoraizeProducts(products));
+
+    let updatedProducts = {};
+    if (product !== "all") {
+      updatedProducts = filterByStateCity(
+        state,
+        city,
+        products.filter((ele) => ele.product_name === product)
+      );
+    } else {
+      updatedProducts = filterByStateCity(state, city, products);
+    }
+    setFilteredProducts(categoraizeProducts(updatedProducts));
+  };
+
+  //To get the products from the api endpoint on component mount
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const res = await axios.get("https://assessment-edvora.herokuapp.com");
+        extractDetails(res.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    getProducts();
+  }, []);
   return (
     <Container>
       <FilterWrapper>
-        <FilterCard product={product} state={state} city={city} />
+        <FilterCard
+          filter={filter}
+          product={productNames}
+          state={states}
+          city={cities}
+          onChangeHandler={handleFilter}
+        />
       </FilterWrapper>
       <ContentWrapper>
         <BrandName>Edvora</BrandName>
         <TabTitle>Products</TabTitle>
         <FilterWrapperMobile>
-          <FilterCard product={product} state={state} city={city} />
+          <FilterCard
+            filter={filter}
+            product={productNames}
+            state={states}
+            city={cities}
+            onChangeHandler={handleFilter}
+          />
         </FilterWrapperMobile>
-        <ProductList title={"Product name"} products={products} />
-        <ProductList title={"Product name"} products={products} />
-        <ProductList title={"Product name"} products={products} />
+        {filteredProducts &&
+          Object.keys(filteredProducts).map((brandName) => (
+            <ProductList
+              title={brandName}
+              products={filteredProducts[brandName]}
+            />
+          ))}
       </ContentWrapper>
     </Container>
   );

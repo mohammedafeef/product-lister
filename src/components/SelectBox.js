@@ -18,6 +18,9 @@ const SelectWrapper = styled.span`
     border-right: 5.5px solid transparent;
     border-top: 5.5px solid #a5a5a5;
   }
+  @media screen and (max-width: 480px) {
+    width: 100%;
+  }
 `;
 
 const Select = styled.select`
@@ -43,10 +46,15 @@ const Select = styled.select`
 const Option = styled.option``;
 
 export default function SelectBox(props) {
-  const { title, options, onChange } = props;
+  const { title, options, onChangeHandler, values } = props;
   return (
     <SelectWrapper>
-      <Select>
+      <Select
+        onChange={(e) =>
+          onChangeHandler({ ...values, [title]: e.target.value })
+        }
+        value={values[title] || "all"}
+      >
         <Option value="all">{title}</Option>
         {options.map((option) => (
           <Option value={option}>{option}</Option>
